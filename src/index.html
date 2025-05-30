@@ -253,12 +253,13 @@
         });
 
         function getPlayerCollectionPath() {
-            // 原来的路径和之前的测试路径都注释掉
+            // 注释掉所有之前的路径
             // return `/artifacts/${appId}/public/data/io_shooter_players`;
             // return `/simple_test_root/${appId}/players_collection`;
+            // return `/super_fixed_path/game_players`;
 
-            // <<<--- 使用一个完全固定的、无通配符的路径进行测试 ---<<<
-            return `/super_fixed_path/game_players`;
+            // <<<--- 使用最简单的顶级集合路径进行测试 ---<<<
+            return `/players_test_final`; // 这是一个顶级集合，只有1个段
         }
 
         function getPlayerDocPath(pId) {
