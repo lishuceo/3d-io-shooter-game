@@ -159,25 +159,27 @@
         import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc, serverTimestamp, updateDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- 配置 START ---
+        // 重要提示：请将下面的占位符替换为你的真实 Firebase 项目配置！
+        // 你可以从 Firebase 控制台 > 项目设置 > 常规 > 你的应用 > Firebase SDK snippet > 配置 中获取。
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "YOUR_API_KEY", // 请替换为你的API Key
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyCMT4t0NMSjXgI9clqALB6uguqY76ul8Iw", // <--- 请务必替换这里！！！
+            authDomain: "sce-intl.firebaseapp.com", // <--- 请务必替换这里！！！
+            projectId: "sce-intl", // <--- 请务必替换这里！！！
+            storageBucket: "sce-intl.firebasestorage.app", // <--- 请务必替换这里！！！
+            messagingSenderId: "247196390586", // <--- 请务必替换这里！！！
+            appId: "1:247196390586:web:a9a5b3c64aeaf545ef5e83" // <--- 请务必替换这里！！！
         };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-io-shooter-app';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-io-shooter-app'; // 这个通常由Canvas环境提供
         // --- 配置 END ---
 
         let db, auth, userId;
         let app;
 
         let scene, camera, renderer, localPlayer, localPlayerId;
-        const players = {}; 
-        const playerMeshes = {}; 
-        const obstacles = []; 
-        const bullets = []; 
+        const players = {};
+        const playerMeshes = {};
+        const obstacles = [];
+        const bullets = [];
 
         const PLAYER_SPEED = 5;
         const PLAYER_SIZE = { height: 1.8, radius: 0.4 };
@@ -185,7 +187,7 @@
         const BULLET_SPEED = 50;
         const BULLET_DAMAGE = 10;
 
-        const keyStates = {}; 
+        const keyStates = {};
 
         const gameCanvas = document.getElementById('gameCanvas');
         const authContainer = document.getElementById('authContainer');
@@ -201,6 +203,14 @@
 
         async function initializeFirebase() {
             try {
+                // 确保 firebaseConfig 不是占位符
+                if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+                    showMessage("错误：Firebase 配置不正确，请检查 apiKey！", 0); // 0 表示消息不自动消失
+                    console.error("Firebase 配置不正确，使用的是占位符 apiKey。请更新 firebaseConfig 对象。");
+                    authContainer.innerHTML = `<p class="text-red-500 text-lg">Firebase 配置错误！<br>请开发者检查代码中的 firebaseConfig。</p>`;
+                    return; // 阻止后续初始化
+                }
+
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -217,6 +227,7 @@
                         await setupGame();
                     } else {
                         console.log("User not authenticated.");
+                        // 只有在 Firebase 初始化成功后才显示登录界面
                         authContainer.style.display = 'flex';
                         gameContainer.style.display = 'none';
                         userIdDisplay.textContent = `用户ID: 未连接`;
@@ -230,13 +241,17 @@
 
         joinGameButton.addEventListener('click', async () => {
             try {
+                if (!auth) { // 确保 auth 已初始化
+                    showMessage("Firebase Auth 服务尚未准备好，请稍候...", 3000);
+                    return;
+                }
                 await signInAnonymously(auth);
             } catch (error) {
                 console.error("Anonymous sign-in error:", error);
                 showMessage(`匿名登录失败: ${error.message}`);
             }
         });
-        
+
         function getPlayerCollectionPath() {
             return `/artifacts/${appId}/public/data/io_shooter_players`;
         }
@@ -262,7 +277,7 @@
 
         function initThree() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87ceeb); 
+            scene.background = new THREE.Color(0x87ceeb);
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -274,7 +289,7 @@
             directionalLight.castShadow = true;
             scene.add(directionalLight);
             const groundGeometry = new THREE.PlaneGeometry(100, 100);
-            const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x90ee90 }); 
+            const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x90ee90 });
             const ground = new THREE.Mesh(groundGeometry, groundMaterial);
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
@@ -283,17 +298,17 @@
 
         function spawnObstacles() {
             const obstacleCount = 10;
-            const spawnRange = 40; 
+            const spawnRange = 40;
             for (let i = 0; i < obstacleCount; i++) {
-                const sizeX = Math.random() * 3 + 2; 
-                const sizeY = Math.random() * 4 + 2; 
-                const sizeZ = Math.random() * 3 + 2; 
+                const sizeX = Math.random() * 3 + 2;
+                const sizeY = Math.random() * 4 + 2;
+                const sizeZ = Math.random() * 3 + 2;
                 const obstacleGeometry = new THREE.BoxGeometry(sizeX, sizeY, sizeZ);
-                const obstacleMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa }); 
+                const obstacleMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
                 const obstacle = new THREE.Mesh(obstacleGeometry, obstacleMaterial);
                 obstacle.position.set(
                     (Math.random() - 0.5) * spawnRange,
-                    sizeY / 2, 
+                    sizeY / 2,
                     (Math.random() - 0.5) * spawnRange
                 );
                 obstacle.castShadow = true;
@@ -310,7 +325,7 @@
             const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
             body.castShadow = true;
             body.receiveShadow = true;
-            body.position.y = PLAYER_SIZE.height / 2; 
+            body.position.y = PLAYER_SIZE.height / 2;
             playerGroup.add(body);
             const headGeometry = new THREE.SphereGeometry(PLAYER_SIZE.radius * 0.8, 16, 16);
             const headMaterial = new THREE.MeshStandardMaterial({ color: 0xeeeeee });
@@ -320,7 +335,7 @@
             const gunGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.5);
             const gunMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
             const gun = new THREE.Mesh(gunGeometry, gunMaterial);
-            gun.position.set(0, PLAYER_SIZE.height * 0.75, PLAYER_SIZE.radius + 0.25); 
+            gun.position.set(0, PLAYER_SIZE.height * 0.75, PLAYER_SIZE.radius + 0.25);
             playerGroup.add(gun);
             return playerGroup;
         }
@@ -335,12 +350,12 @@
                 name: `玩家${localPlayerId.substring(0, 4)}`,
                 kills: 0,
                 color: `#${randomColor.toString(16).padStart(6, '0')}`,
-                lastDamagedBy: null // 新增字段
+                lastDamagedBy: null 
             };
             const spawnRange = 40;
             localPlayer.mesh.position.set(
                 (Math.random() - 0.5) * spawnRange,
-                0, 
+                0,
                 (Math.random() - 0.5) * spawnRange
             );
             scene.add(localPlayer.mesh);
@@ -364,7 +379,7 @@
                     isAlive: localPlayer.isAlive,
                     color: localPlayer.color,
                     kills: localPlayer.kills || 0,
-                    lastDamagedBy: null, // 初始化 lastDamagedBy
+                    lastDamagedBy: null, 
                     lastSeen: serverTimestamp()
                 });
                 console.log("Player joined game in Firestore:", localPlayerId);
@@ -380,14 +395,14 @@
                 const currentPlayersData = [];
                 snapshot.forEach((docSnap) => {
                     const playerData = docSnap.data();
-                    currentPlayersData.push(playerData); 
+                    currentPlayersData.push(playerData);
 
-                    if (playerData.id === localPlayerId) { 
+                    if (playerData.id === localPlayerId) {
                         if (localPlayer && localPlayer.health !== playerData.health) {
                             const oldHealth = localPlayer.health;
                             localPlayer.health = playerData.health;
                             updateHealthBar();
-                            if (localPlayer.health <= 0 && oldHealth > 0 && localPlayer.isAlive) { // 确保只触发一次
+                            if (localPlayer.health <= 0 && oldHealth > 0 && localPlayer.isAlive) { 
                                 const killerId = playerData.lastDamagedBy;
                                 if (killerId && players[killerId]) {
                                     generateAndDisplayDeathMessage(players[killerId].name || `玩家${killerId.substring(0,4)}`);
@@ -396,20 +411,19 @@
                                 } else {
                                     generateAndDisplayDeathMessage("某个未知力量");
                                 }
-                                handleLocalPlayerDeath(); // 然后处理死亡逻辑
+                                handleLocalPlayerDeath(); 
                             }
                         }
                         if (localPlayer && localPlayer.kills !== playerData.kills) {
                             localPlayer.kills = playerData.kills;
                         }
-                        // 同步 lastDamagedBy 给本地玩家对象，以防万一
                         if (localPlayer && playerData.lastDamagedBy !== undefined) {
                             localPlayer.lastDamagedBy = playerData.lastDamagedBy;
                         }
                         return;
                     }
 
-                    if (!playerData.isAlive) { 
+                    if (!playerData.isAlive) {
                         if (playerMeshes[playerData.id]) {
                             scene.remove(playerMeshes[playerData.id]);
                             delete playerMeshes[playerData.id];
@@ -417,51 +431,49 @@
                         }
                         return;
                     }
-                    
-                    if (!players[playerData.id]) { 
+
+                    if (!players[playerData.id]) {
                         const playerMesh = createPlayerMesh(new THREE.Color(playerData.color).getHex());
                         playerMesh.position.set(playerData.x, playerData.y, playerData.z);
                         playerMesh.rotation.y = playerData.rotationY;
                         scene.add(playerMesh);
                         playerMeshes[playerData.id] = playerMesh;
-                        players[playerData.id] = playerData; // 存储完整玩家数据
-                    } else { 
+                        players[playerData.id] = playerData; 
+                    } else {
                         const mesh = playerMeshes[playerData.id];
                         if (mesh) {
-                            mesh.position.lerp(new THREE.Vector3(playerData.x, playerData.y, playerData.z), 0.3); 
-                            mesh.rotation.y = playerData.rotationY; 
+                            mesh.position.lerp(new THREE.Vector3(playerData.x, playerData.y, playerData.z), 0.3);
+                            mesh.rotation.y = playerData.rotationY;
                         }
-                        players[playerData.id] = playerData; // 更新数据
+                        players[playerData.id] = playerData; 
                     }
                 });
                 updateLeaderboard(currentPlayersData);
             });
         }
-        
+
         function updateLeaderboard(allPlayersData) {
-            leaderboardContent.innerHTML = ''; 
+            leaderboardContent.innerHTML = '';
             const sortedPlayers = allPlayersData
-                .filter(p => p.isAlive) 
-                .sort((a, b) => (b.kills || 0) - (a.kills || 0)); 
+                .filter(p => p.isAlive)
+                .sort((a, b) => (b.kills || 0) - (a.kills || 0));
 
             sortedPlayers.forEach(p => {
                 const playerDiv = document.createElement('div');
                 playerDiv.textContent = `${p.name || '匿名'}: ${p.kills || 0} 击杀`;
                 if (p.id === localPlayerId) {
                     playerDiv.style.fontWeight = 'bold';
-                    playerDiv.style.color = '#66ff66'; 
+                    playerDiv.style.color = '#66ff66';
                 }
                 leaderboardContent.appendChild(playerDiv);
             });
         }
 
         function handleLocalPlayerDeath() {
-            if (!localPlayer.isAlive) return; 
+            if (!localPlayer.isAlive) return;
 
             localPlayer.isAlive = false;
-            // AI阵亡感言已在 listenToPlayerChanges 中触发
-            // showMessage("你被淘汰了！"); // 可以保留，或者让AI消息成为主要提示
-
+            
             if (localPlayer.mesh) {
                 localPlayer.mesh.children.forEach(child => {
                     if (child.material) {
@@ -470,7 +482,7 @@
                     }
                 });
             }
-            
+
             const playerRef = doc(db, getPlayerDocPath(localPlayerId));
             updateDoc(playerRef, { isAlive: false, health: 0 })
                 .then(() => console.log("Local player marked as dead in Firestore."))
@@ -487,7 +499,7 @@
                 respawnButton.onclick = async () => {
                     localPlayer.health = INITIAL_HEALTH;
                     localPlayer.isAlive = true;
-                    localPlayer.kills = 0; 
+                    localPlayer.kills = 0;
                     const spawnRange = 40;
                     localPlayer.mesh.position.set(
                         (Math.random() - 0.5) * spawnRange,
@@ -501,7 +513,7 @@
                         }
                     });
                     updateHealthBar();
-                    await joinGameInFirestore(); 
+                    await joinGameInFirestore();
                     showMessage("已重新加入游戏！");
                     respawnButton.remove();
                 };
@@ -519,15 +531,15 @@
         }
 
         let lastUpdateTime = 0;
-        const UPDATE_INTERVAL = 100; 
+        const UPDATE_INTERVAL = 100;
 
         function animate() {
             requestAnimationFrame(animate);
-            const delta = clock.getDelta(); 
+            const delta = clock.getDelta();
 
             if (localPlayer && localPlayer.isAlive) {
                 handleMovement(delta);
-                handleMouseLook(delta); 
+                handleMouseLook(delta);
                 const now = Date.now();
                 if (now - lastUpdateTime > UPDATE_INTERVAL) {
                     updatePlayerStateInFirestore();
@@ -536,17 +548,17 @@
             }
             updateBullets(delta);
             if (localPlayer && localPlayer.mesh) {
-                const offset = new THREE.Vector3(0, 6, 10); 
+                const offset = new THREE.Vector3(0, 6, 10);
                 const desiredCamPos = localPlayer.mesh.position.clone().add(offset.applyQuaternion(localPlayer.mesh.quaternion));
-                camera.position.lerp(desiredCamPos, 0.1); 
-                const lookAtPos = localPlayer.mesh.position.clone().add(new THREE.Vector3(0, 1.5, 0)); 
+                camera.position.lerp(desiredCamPos, 0.1);
+                const lookAtPos = localPlayer.mesh.position.clone().add(new THREE.Vector3(0, 1.5, 0));
                 camera.lookAt(lookAtPos);
             }
             renderer.render(scene, camera);
         }
 
         const clock = new THREE.Clock();
-        let mouse = new THREE.Vector2(); 
+        let mouse = new THREE.Vector2();
         let isPointerLocked = false;
 
         function handleMovement(delta) {
@@ -558,28 +570,28 @@
             if (keyStates['a'] || keyStates['A'] || keyStates['ArrowLeft']) moveDirection.x = -1;
             if (keyStates['d'] || keyStates['D'] || keyStates['ArrowRight']) moveDirection.x = 1;
 
-            if (moveDirection.lengthSq() > 0) { 
-                moveDirection.normalize(); 
-                moveDirection.applyQuaternion(localPlayer.mesh.quaternion); 
+            if (moveDirection.lengthSq() > 0) {
+                moveDirection.normalize();
+                moveDirection.applyQuaternion(localPlayer.mesh.quaternion);
                 const oldPosition = localPlayer.mesh.position.clone();
                 localPlayer.mesh.position.add(moveDirection.multiplyScalar(moveSpeed));
                 const playerBox = new THREE.Box3().setFromObject(localPlayer.mesh);
                 for (const obstacle of obstacles) {
                     const obstacleBox = new THREE.Box3().setFromObject(obstacle);
                     if (playerBox.intersectsBox(obstacleBox)) {
-                        localPlayer.mesh.position.copy(oldPosition); 
-                        break; 
+                        localPlayer.mesh.position.copy(oldPosition);
+                        break;
                     }
                 }
-                const boundary = 48; 
+                const boundary = 48;
                 localPlayer.mesh.position.x = Math.max(-boundary, Math.min(boundary, localPlayer.mesh.position.x));
                 localPlayer.mesh.position.z = Math.max(-boundary, Math.min(boundary, localPlayer.mesh.position.z));
             }
         }
-        
+
         function handleMouseLook(delta) {
             if (!isPointerLocked || !localPlayer || !localPlayer.mesh || !localPlayer.isAlive) return;
-            localPlayer.mesh.rotation.y -= mouse.x * 0.002; 
+            localPlayer.mesh.rotation.y -= mouse.x * 0.002;
             mouse.x = 0;
             mouse.y = 0;
         }
@@ -592,10 +604,10 @@
                 y: localPlayer.mesh.position.y,
                 z: localPlayer.mesh.position.z,
                 rotationY: localPlayer.mesh.rotation.y,
-                health: localPlayer.health, 
+                health: localPlayer.health,
                 isAlive: localPlayer.isAlive,
                 kills: localPlayer.kills,
-                lastDamagedBy: localPlayer.lastDamagedBy, // 同步此字段
+                lastDamagedBy: localPlayer.lastDamagedBy, 
                 lastSeen: serverTimestamp()
             };
             updateDoc(playerRef, playerData).catch(err => console.error("Error updating player state:", err));
@@ -606,14 +618,14 @@
             const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
             const bulletGeometry = new THREE.SphereGeometry(0.1, 8, 8);
             const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
-            const gunPosition = new THREE.Vector3(0, PLAYER_SIZE.height * 0.75, PLAYER_SIZE.radius + 0.3); 
-            gunPosition.applyQuaternion(localPlayer.mesh.quaternion); 
-            bullet.position.copy(localPlayer.mesh.position).add(gunPosition); 
-            const direction = new THREE.Vector3(0,0,-1); 
-            direction.applyQuaternion(localPlayer.mesh.quaternion); 
+            const gunPosition = new THREE.Vector3(0, PLAYER_SIZE.height * 0.75, PLAYER_SIZE.radius + 0.3);
+            gunPosition.applyQuaternion(localPlayer.mesh.quaternion);
+            bullet.position.copy(localPlayer.mesh.position).add(gunPosition);
+            const direction = new THREE.Vector3(0,0,-1);
+            direction.applyQuaternion(localPlayer.mesh.quaternion);
             direction.normalize();
             bullet.velocity = direction.multiplyScalar(BULLET_SPEED);
-            bullet.ownerId = localPlayerId; 
+            bullet.ownerId = localPlayerId;
             bullet.creationTime = clock.getElapsedTime();
             scene.add(bullet);
             bullets.push(bullet);
@@ -634,27 +646,27 @@
                     if (bulletBox.intersectsBox(obstacleBox)) {
                         scene.remove(bullet);
                         bullets.splice(i, 1);
-                        break; 
+                        break;
                     }
                 }
-                if (!bullet.parent) continue; 
+                if (!bullet.parent) continue;
                 for (const pId in playerMeshes) {
-                    if (pId === bullet.ownerId) continue; 
-                    if (!players[pId] || !players[pId].isAlive) continue; 
+                    if (pId === bullet.ownerId) continue;
+                    if (!players[pId] || !players[pId].isAlive) continue;
                     const targetPlayerMesh = playerMeshes[pId];
                     const distance = bullet.position.distanceTo(targetPlayerMesh.position);
-                    if (distance < PLAYER_SIZE.radius + PLAYER_SIZE.height / 2 * 0.7) { 
+                    if (distance < PLAYER_SIZE.radius + PLAYER_SIZE.height / 2 * 0.7) {
                         scene.remove(bullet);
                         bullets.splice(i, 1);
                         if (bullet.ownerId === localPlayerId) {
                              handleHit(pId, BULLET_DAMAGE, bullet.ownerId);
                         }
-                        break; 
+                        break;
                     }
                 }
             }
         }
-        
+
         async function handleHit(targetPlayerId, damage, attackerId) {
             if (!players[targetPlayerId] || !players[targetPlayerId].isAlive) return;
 
@@ -663,25 +675,22 @@
                 await runTransaction(db, async (transaction) => {
                     const targetPlayerDoc = await transaction.get(targetPlayerRef);
                     if (!targetPlayerDoc.exists() || !targetPlayerDoc.data().isAlive) {
-                        return; 
+                        return;
                     }
 
                     const currentHealth = targetPlayerDoc.data().health;
                     const newHealth = Math.max(0, currentHealth - damage);
-                    
-                    // 更新受害者数据，包括生命值和最后攻击者
-                    transaction.update(targetPlayerRef, { 
+
+                    transaction.update(targetPlayerRef, {
                         health: newHealth,
-                        lastDamagedBy: attackerId // 记录攻击者ID
+                        lastDamagedBy: attackerId 
                     });
 
-                    if (newHealth <= 0) { 
-                        // 只有攻击者是本地玩家时，才在攻击者客户端生成击杀庆祝语
+                    if (newHealth <= 0) {
                         if (attackerId === localPlayerId) {
                             const targetName = players[targetPlayerId]?.name || `玩家${targetPlayerId.substring(0,4)}`;
                             generateAndDisplayKillTaunt(targetName);
-                            
-                            // 更新本地玩家（攻击者）的击杀数
+
                             localPlayer.kills = (localPlayer.kills || 0) + 1;
                             const localPlayerRef = doc(db, getPlayerDocPath(localPlayerId));
                             transaction.update(localPlayerRef, { kills: localPlayer.kills });
@@ -697,7 +706,7 @@
 
         // --- Gemini API 功能 START ---
         async function callGeminiAPI(promptText) {
-            showMessage("✨ AI播报员正在思考... ✨", 2000); // 显示思考中消息
+            showMessage("✨ AI播报员正在思考... ✨", 2000); 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
             const payload = {
                 contents: [{ role: "user", parts: [{ text: promptText }] }]
@@ -712,7 +721,13 @@
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error("Gemini API Error:", errorData);
-                    throw new Error(`Gemini API request failed with status ${response.status}`);
+                    // 更具体的错误提示
+                    if (errorData.error && errorData.error.message) {
+                         showMessage(`AI播报员出错了: ${errorData.error.message}`, 5000);
+                    } else {
+                        showMessage(`AI播报员出错了 (状态码: ${response.status})`, 5000);
+                    }
+                    return "AI播报员暂时无法连接..."; // 返回一个默认消息
                 }
                 const result = await response.json();
                 if (result.candidates && result.candidates.length > 0 &&
@@ -725,7 +740,8 @@
                 }
             } catch (error) {
                 console.error('Error calling Gemini API:', error);
-                return "AI播报员连接出现了一点小问题...";
+                showMessage("AI播报员连接出现了一点小问题...", 5000);
+                return "AI播报员连接超时或网络错误...";
             }
         }
 
@@ -749,7 +765,7 @@
             window.addEventListener('resize', onWindowResize, false);
             document.addEventListener('keydown', (event) => { keyStates[event.key] = true; });
             document.addEventListener('keyup', (event) => { keyStates[event.key] = false; });
-            
+
             gameCanvas.addEventListener('click', () => {
                 if (!isPointerLocked) {
                     gameCanvas.requestPointerLock();
@@ -769,7 +785,7 @@
                     mouse.y = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
                 }
             }, false);
-            
+
             window.addEventListener('beforeunload', async () => {
                 if (localPlayerId && db) {
                     const playerRef = doc(db, getPlayerDocPath(localPlayerId));
@@ -793,7 +809,7 @@
             messageContainer.textContent = msg;
             messageContainer.style.display = 'block';
             clearTimeout(messageTimeout);
-            if (duration > 0) {
+            if (duration > 0) { // 如果 duration 为 0 或负数，消息将一直显示直到被新消息覆盖或手动清除
                 messageTimeout = setTimeout(() => {
                     messageContainer.style.display = 'none';
                 }, duration);
