@@ -253,7 +253,13 @@
         });
 
         function getPlayerCollectionPath() {
-            return `/artifacts/${appId}/public/data/io_shooter_players`;
+            // 原来的路径
+            // return `/artifacts/${appId}/public/data/io_shooter_players`;
+
+            // <<<--- 临时修改为更简单的路径进行测试 ---<<<
+            return `/test_game_players/${appId}`; 
+            // 或者甚至更简单，不包含 appId (但规则中也对应修改): return `/test_game_players_simple`;
+            // 我们先用包含 appId 的简单路径
         }
 
         function getPlayerDocPath(pId) {
