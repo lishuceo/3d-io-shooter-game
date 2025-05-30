@@ -395,11 +395,8 @@
             }
         }
 
-        function listenToPlayerChanges() {
-            const currentDbInstance = getFirestore(app); // 重新获取实例
 
-            console.log("ListenToPlayerChanges: Current Auth User:", auth.currentUser);
-            
+        function listenToPlayerChanges() {
             // <<<--- 添加日志1：输出 auth.currentUser 和 appId ---<<<
             console.log("ListenToPlayerChanges: Current Auth User:", auth.currentUser);
             if (auth.currentUser) {
@@ -409,82 +406,67 @@
             // <<<--- 添加日志2：输出正在监听的集合路径 ---<<<
             console.log("ListenToPlayerChanges: Attempting to listen to collection path:", collectionPath);
 
-            const playersRef = collection(currentDbInstance, collectionPath); // 使用新的实例
-            onSnapshot(playersRef, (snapshot) => { /* ... */ }, (error) => {
-                console.error("Error in onSnapshot listener directly:", error);
+            const playersRef = collection(db, getPlayerCollectionPath());
+            onSnapshot(playersRef, (snapshot) => {
+                const currentPlayersData = [];
+                snapshot.forEach((docSnap) => {
+                    const playerData = docSnap.data();
+                    currentPlayersData.push(playerData);
+
+                    if (playerData.id === localPlayerId) {
+                        if (localPlayer && localPlayer.health !== playerData.health) {
+                            const oldHealth = localPlayer.health;
+                            localPlayer.health = playerData.health;
+                            updateHealthBar();
+                            if (localPlayer.health <= 0 && oldHealth > 0 && localPlayer.isAlive) { 
+                                const killerId = playerData.lastDamagedBy;
+                                if (killerId && players[killerId]) {
+                                    generateAndDisplayDeathMessage(players[killerId].name || `玩家${killerId.substring(0,4)}`);
+                                } else if (killerId) {
+                                    generateAndDisplayDeathMessage(`玩家${killerId.substring(0,4)}`);
+                                } else {
+                                    generateAndDisplayDeathMessage("某个未知力量");
+                                }
+                                handleLocalPlayerDeath(); 
+                            }
+                        }
+                        if (localPlayer && localPlayer.kills !== playerData.kills) {
+                            localPlayer.kills = playerData.kills;
+                        }
+                        if (localPlayer && playerData.lastDamagedBy !== undefined) {
+                            localPlayer.lastDamagedBy = playerData.lastDamagedBy;
+                        }
+                        return;
+                    }
+
+                    if (!playerData.isAlive) {
+                        if (playerMeshes[playerData.id]) {
+                            scene.remove(playerMeshes[playerData.id]);
+                            delete playerMeshes[playerData.id];
+                            delete players[playerData.id];
+                        }
+                        return;
+                    }
+
+                    if (!players[playerData.id]) {
+                        const playerMesh = createPlayerMesh(new THREE.Color(playerData.color).getHex());
+                        playerMesh.position.set(playerData.x, playerData.y, playerData.z);
+                        playerMesh.rotation.y = playerData.rotationY;
+                        scene.add(playerMesh);
+                        playerMeshes[playerData.id] = playerMesh;
+                        players[playerData.id] = playerData; 
+                    } else {
+                        const mesh = playerMeshes[playerData.id];
+                        if (mesh) {
+                            mesh.position.lerp(new THREE.Vector3(playerData.x, playerData.y, playerData.z), 0.3);
+                            mesh.rotation.y = playerData.rotationY;
+                        }
+                        players[playerData.id] = playerData; 
+                    }
+                });
+                updateLeaderboard(currentPlayersData);
             });
         }
-        // function listenToPlayerChanges() {
-        //     // <<<--- 添加日志1：输出 auth.currentUser 和 appId ---<<<
-        //     console.log("ListenToPlayerChanges: Current Auth User:", auth.currentUser);
-        //     if (auth.currentUser) {
-        //         console.log("ListenToPlayerChanges: Current Auth User UID:", auth.currentUser.uid);
-        //     }
-        //     const collectionPath = getPlayerCollectionPath();
-        //     // <<<--- 添加日志2：输出正在监听的集合路径 ---<<<
-        //     console.log("ListenToPlayerChanges: Attempting to listen to collection path:", collectionPath);
-
-        //     const playersRef = collection(db, getPlayerCollectionPath());
-        //     onSnapshot(playersRef, (snapshot) => {
-        //         const currentPlayersData = [];
-        //         snapshot.forEach((docSnap) => {
-        //             const playerData = docSnap.data();
-        //             currentPlayersData.push(playerData);
-
-        //             if (playerData.id === localPlayerId) {
-        //                 if (localPlayer && localPlayer.health !== playerData.health) {
-        //                     const oldHealth = localPlayer.health;
-        //                     localPlayer.health = playerData.health;
-        //                     updateHealthBar();
-        //                     if (localPlayer.health <= 0 && oldHealth > 0 && localPlayer.isAlive) { 
-        //                         const killerId = playerData.lastDamagedBy;
-        //                         if (killerId && players[killerId]) {
-        //                             generateAndDisplayDeathMessage(players[killerId].name || `玩家${killerId.substring(0,4)}`);
-        //                         } else if (killerId) {
-        //                             generateAndDisplayDeathMessage(`玩家${killerId.substring(0,4)}`);
-        //                         } else {
-        //                             generateAndDisplayDeathMessage("某个未知力量");
-        //                         }
-        //                         handleLocalPlayerDeath(); 
-        //                     }
-        //                 }
-        //                 if (localPlayer && localPlayer.kills !== playerData.kills) {
-        //                     localPlayer.kills = playerData.kills;
-        //                 }
-        //                 if (localPlayer && playerData.lastDamagedBy !== undefined) {
-        //                     localPlayer.lastDamagedBy = playerData.lastDamagedBy;
-        //                 }
-        //                 return;
-        //             }
-
-        //             if (!playerData.isAlive) {
-        //                 if (playerMeshes[playerData.id]) {
-        //                     scene.remove(playerMeshes[playerData.id]);
-        //                     delete playerMeshes[playerData.id];
-        //                     delete players[playerData.id];
-        //                 }
-        //                 return;
-        //             }
-
-        //             if (!players[playerData.id]) {
-        //                 const playerMesh = createPlayerMesh(new THREE.Color(playerData.color).getHex());
-        //                 playerMesh.position.set(playerData.x, playerData.y, playerData.z);
-        //                 playerMesh.rotation.y = playerData.rotationY;
-        //                 scene.add(playerMesh);
-        //                 playerMeshes[playerData.id] = playerMesh;
-        //                 players[playerData.id] = playerData; 
-        //             } else {
-        //                 const mesh = playerMeshes[playerData.id];
-        //                 if (mesh) {
-        //                     mesh.position.lerp(new THREE.Vector3(playerData.x, playerData.y, playerData.z), 0.3);
-        //                     mesh.rotation.y = playerData.rotationY;
-        //                 }
-        //                 players[playerData.id] = playerData; 
-        //             }
-        //         });
-        //         updateLeaderboard(currentPlayersData);
-        //     });
-        // }
 
         function updateLeaderboard(allPlayersData) {
             leaderboardContent.innerHTML = '';
