@@ -399,7 +399,16 @@
             const currentDbInstance = getFirestore(app); // 重新获取实例
 
             console.log("ListenToPlayerChanges: Current Auth User:", auth.currentUser);
-            // ...
+            
+            // <<<--- 添加日志1：输出 auth.currentUser 和 appId ---<<<
+            console.log("ListenToPlayerChanges: Current Auth User:", auth.currentUser);
+            if (auth.currentUser) {
+                console.log("ListenToPlayerChanges: Current Auth User UID:", auth.currentUser.uid);
+            }
+            const collectionPath = getPlayerCollectionPath();
+            // <<<--- 添加日志2：输出正在监听的集合路径 ---<<<
+            console.log("ListenToPlayerChanges: Attempting to listen to collection path:", collectionPath);
+
             const playersRef = collection(currentDbInstance, collectionPath); // 使用新的实例
             onSnapshot(playersRef, (snapshot) => { /* ... */ }, (error) => {
                 console.error("Error in onSnapshot listener directly:", error);
