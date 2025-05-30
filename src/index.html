@@ -1,89 +1,807 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
-
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/11.8.1/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/11.8.1/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/11.8.1/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
-    </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D IO 射击游戏 - AI播报员版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+        #gameCanvas { display: block; }
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allow clicks to pass through to canvas */
         }
-      });
+        .ui-element {
+            pointer-events: auto; /* Enable interaction for specific UI elements */
+        }
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            border: 1px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #healthBarContainer {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 20px;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 5px;
+            padding: 2px;
+        }
+        #healthBar {
+            width: 100%;
+            height: 100%;
+            background-color: green;
+            border-radius: 3px;
+            transition: width 0.2s;
+        }
+        #messageContainer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            max-width: 80%;
+        }
+         #authContainer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(20, 20, 20, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .input-field {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        .btn-primary {
+            background-color: #4A90E2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #357ABD;
+        }
+        #userIdDisplay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        #leaderboard {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0,0,0,0.6);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #leaderboard h3 {
+            margin-top: 0;
+            font-size: 16px;
+            border-bottom: 1px solid #555;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+        }
+        #leaderboard div {
+            font-size: 14px;
+            padding: 3px 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-800">
+    <div id="authContainer" class="ui-element">
+        <h2 class="text-white text-2xl mb-4">加入游戏</h2>
+        <button id="joinGameButton" class="btn-primary">匿名加入</button>
+        <p class="text-gray-400 text-xs mt-4">您的用户ID将会自动生成。</p>
+    </div>
+
+    <div id="gameContainer" style="display: none;">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui-container">
+            <div id="crosshair"></div>
+            <div id="healthBarContainer">
+                <div id="healthBar"></div>
+            </div>
+            <div id="messageContainer" class="ui-element">欢迎来到战场！</div>
+            <div id="userIdDisplay" class="ui-element">用户ID: 未连接</div>
+            <div id="leaderboard" class="ui-element">
+                <h3>排行榜</h3>
+                <div id="leaderboardContent">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc, serverTimestamp, updateDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- 配置 START ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "YOUR_API_KEY", // 请替换为你的API Key
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-io-shooter-app';
+        // --- 配置 END ---
+
+        let db, auth, userId;
+        let app;
+
+        let scene, camera, renderer, localPlayer, localPlayerId;
+        const players = {}; 
+        const playerMeshes = {}; 
+        const obstacles = []; 
+        const bullets = []; 
+
+        const PLAYER_SPEED = 5;
+        const PLAYER_SIZE = { height: 1.8, radius: 0.4 };
+        const INITIAL_HEALTH = 100;
+        const BULLET_SPEED = 50;
+        const BULLET_DAMAGE = 10;
+
+        const keyStates = {}; 
+
+        const gameCanvas = document.getElementById('gameCanvas');
+        const authContainer = document.getElementById('authContainer');
+        const gameContainer = document.getElementById('gameContainer');
+        const joinGameButton = document.getElementById('joinGameButton');
+        const healthBar = document.getElementById('healthBar');
+        const messageContainer = document.getElementById('messageContainer');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const leaderboardContent = document.getElementById('leaderboardContent');
+
+        // Gemini API Key - Canvas 会在运行时提供
+        const GEMINI_API_KEY = ""; // 为空字符串，由Canvas环境注入
+
+        async function initializeFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                console.log("Firebase initialized. App ID:", appId);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        localPlayerId = userId;
+                        console.log("Authenticated. User ID:", userId);
+                        userIdDisplay.textContent = `用户ID: ${userId}`;
+                        authContainer.style.display = 'none';
+                        gameContainer.style.display = 'block';
+                        await setupGame();
+                    } else {
+                        console.log("User not authenticated.");
+                        authContainer.style.display = 'flex';
+                        gameContainer.style.display = 'none';
+                        userIdDisplay.textContent = `用户ID: 未连接`;
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase initialization error:", error);
+                showMessage(`Firebase 初始化失败: ${error.message}`);
+            }
+        }
+
+        joinGameButton.addEventListener('click', async () => {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Anonymous sign-in error:", error);
+                showMessage(`匿名登录失败: ${error.message}`);
+            }
+        });
+        
+        function getPlayerCollectionPath() {
+            return `/artifacts/${appId}/public/data/io_shooter_players`;
+        }
+
+        function getPlayerDocPath(pId) {
+            return `${getPlayerCollectionPath()}/${pId}`;
+        }
+
+        async function setupGame() {
+            if (!userId) {
+                console.error("User ID is not available. Cannot setup game.");
+                return;
+            }
+            initThree();
+            initLocalPlayer();
+            spawnObstacles();
+            await joinGameInFirestore();
+            listenToPlayerChanges();
+            animate();
+            setupEventListeners();
+            showMessage("游戏已开始！使用WASD移动，鼠标瞄准，点击左键射击。");
+        }
+
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87ceeb); 
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7.5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            const groundGeometry = new THREE.PlaneGeometry(100, 100);
+            const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x90ee90 }); 
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+        }
+
+        function spawnObstacles() {
+            const obstacleCount = 10;
+            const spawnRange = 40; 
+            for (let i = 0; i < obstacleCount; i++) {
+                const sizeX = Math.random() * 3 + 2; 
+                const sizeY = Math.random() * 4 + 2; 
+                const sizeZ = Math.random() * 3 + 2; 
+                const obstacleGeometry = new THREE.BoxGeometry(sizeX, sizeY, sizeZ);
+                const obstacleMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa }); 
+                const obstacle = new THREE.Mesh(obstacleGeometry, obstacleMaterial);
+                obstacle.position.set(
+                    (Math.random() - 0.5) * spawnRange,
+                    sizeY / 2, 
+                    (Math.random() - 0.5) * spawnRange
+                );
+                obstacle.castShadow = true;
+                obstacle.receiveShadow = true;
+                scene.add(obstacle);
+                obstacles.push(obstacle);
+            }
+        }
+
+        function createPlayerMesh(color = 0xff0000) {
+            const playerGroup = new THREE.Group();
+            const bodyGeometry = new THREE.CylinderGeometry(PLAYER_SIZE.radius, PLAYER_SIZE.radius, PLAYER_SIZE.height, 16);
+            const bodyMaterial = new THREE.MeshStandardMaterial({ color });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.castShadow = true;
+            body.receiveShadow = true;
+            body.position.y = PLAYER_SIZE.height / 2; 
+            playerGroup.add(body);
+            const headGeometry = new THREE.SphereGeometry(PLAYER_SIZE.radius * 0.8, 16, 16);
+            const headMaterial = new THREE.MeshStandardMaterial({ color: 0xeeeeee });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.y = PLAYER_SIZE.height + PLAYER_SIZE.radius * 0.4;
+            playerGroup.add(head);
+            const gunGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.5);
+            const gunMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const gun = new THREE.Mesh(gunGeometry, gunMaterial);
+            gun.position.set(0, PLAYER_SIZE.height * 0.75, PLAYER_SIZE.radius + 0.25); 
+            playerGroup.add(gun);
+            return playerGroup;
+        }
+
+        function initLocalPlayer() {
+            const randomColor = new THREE.Color(Math.random() * 0xffffff).getHex();
+            localPlayer = {
+                id: localPlayerId,
+                mesh: createPlayerMesh(randomColor),
+                health: INITIAL_HEALTH,
+                isAlive: true,
+                name: `玩家${localPlayerId.substring(0, 4)}`,
+                kills: 0,
+                color: `#${randomColor.toString(16).padStart(6, '0')}`,
+                lastDamagedBy: null // 新增字段
+            };
+            const spawnRange = 40;
+            localPlayer.mesh.position.set(
+                (Math.random() - 0.5) * spawnRange,
+                0, 
+                (Math.random() - 0.5) * spawnRange
+            );
+            scene.add(localPlayer.mesh);
+            camera.position.set(localPlayer.mesh.position.x, localPlayer.mesh.position.y + 5, localPlayer.mesh.position.z + 8);
+            camera.lookAt(localPlayer.mesh.position);
+            updateHealthBar();
+        }
+
+        async function joinGameInFirestore() {
+            if (!localPlayer || !localPlayerId) return;
+            const playerRef = doc(db, getPlayerDocPath(localPlayerId));
+            try {
+                await setDoc(playerRef, {
+                    id: localPlayer.id,
+                    name: localPlayer.name,
+                    x: localPlayer.mesh.position.x,
+                    y: localPlayer.mesh.position.y,
+                    z: localPlayer.mesh.position.z,
+                    rotationY: localPlayer.mesh.rotation.y,
+                    health: localPlayer.health,
+                    isAlive: localPlayer.isAlive,
+                    color: localPlayer.color,
+                    kills: localPlayer.kills || 0,
+                    lastDamagedBy: null, // 初始化 lastDamagedBy
+                    lastSeen: serverTimestamp()
+                });
+                console.log("Player joined game in Firestore:", localPlayerId);
+            } catch (error) {
+                console.error("Error joining game in Firestore:", error);
+                showMessage(`加入游戏失败: ${error.message}`);
+            }
+        }
+
+        function listenToPlayerChanges() {
+            const playersRef = collection(db, getPlayerCollectionPath());
+            onSnapshot(playersRef, (snapshot) => {
+                const currentPlayersData = [];
+                snapshot.forEach((docSnap) => {
+                    const playerData = docSnap.data();
+                    currentPlayersData.push(playerData); 
+
+                    if (playerData.id === localPlayerId) { 
+                        if (localPlayer && localPlayer.health !== playerData.health) {
+                            const oldHealth = localPlayer.health;
+                            localPlayer.health = playerData.health;
+                            updateHealthBar();
+                            if (localPlayer.health <= 0 && oldHealth > 0 && localPlayer.isAlive) { // 确保只触发一次
+                                const killerId = playerData.lastDamagedBy;
+                                if (killerId && players[killerId]) {
+                                    generateAndDisplayDeathMessage(players[killerId].name || `玩家${killerId.substring(0,4)}`);
+                                } else if (killerId) {
+                                    generateAndDisplayDeathMessage(`玩家${killerId.substring(0,4)}`);
+                                } else {
+                                    generateAndDisplayDeathMessage("某个未知力量");
+                                }
+                                handleLocalPlayerDeath(); // 然后处理死亡逻辑
+                            }
+                        }
+                        if (localPlayer && localPlayer.kills !== playerData.kills) {
+                            localPlayer.kills = playerData.kills;
+                        }
+                        // 同步 lastDamagedBy 给本地玩家对象，以防万一
+                        if (localPlayer && playerData.lastDamagedBy !== undefined) {
+                            localPlayer.lastDamagedBy = playerData.lastDamagedBy;
+                        }
+                        return;
+                    }
+
+                    if (!playerData.isAlive) { 
+                        if (playerMeshes[playerData.id]) {
+                            scene.remove(playerMeshes[playerData.id]);
+                            delete playerMeshes[playerData.id];
+                            delete players[playerData.id];
+                        }
+                        return;
+                    }
+                    
+                    if (!players[playerData.id]) { 
+                        const playerMesh = createPlayerMesh(new THREE.Color(playerData.color).getHex());
+                        playerMesh.position.set(playerData.x, playerData.y, playerData.z);
+                        playerMesh.rotation.y = playerData.rotationY;
+                        scene.add(playerMesh);
+                        playerMeshes[playerData.id] = playerMesh;
+                        players[playerData.id] = playerData; // 存储完整玩家数据
+                    } else { 
+                        const mesh = playerMeshes[playerData.id];
+                        if (mesh) {
+                            mesh.position.lerp(new THREE.Vector3(playerData.x, playerData.y, playerData.z), 0.3); 
+                            mesh.rotation.y = playerData.rotationY; 
+                        }
+                        players[playerData.id] = playerData; // 更新数据
+                    }
+                });
+                updateLeaderboard(currentPlayersData);
+            });
+        }
+        
+        function updateLeaderboard(allPlayersData) {
+            leaderboardContent.innerHTML = ''; 
+            const sortedPlayers = allPlayersData
+                .filter(p => p.isAlive) 
+                .sort((a, b) => (b.kills || 0) - (a.kills || 0)); 
+
+            sortedPlayers.forEach(p => {
+                const playerDiv = document.createElement('div');
+                playerDiv.textContent = `${p.name || '匿名'}: ${p.kills || 0} 击杀`;
+                if (p.id === localPlayerId) {
+                    playerDiv.style.fontWeight = 'bold';
+                    playerDiv.style.color = '#66ff66'; 
+                }
+                leaderboardContent.appendChild(playerDiv);
+            });
+        }
+
+        function handleLocalPlayerDeath() {
+            if (!localPlayer.isAlive) return; 
+
+            localPlayer.isAlive = false;
+            // AI阵亡感言已在 listenToPlayerChanges 中触发
+            // showMessage("你被淘汰了！"); // 可以保留，或者让AI消息成为主要提示
+
+            if (localPlayer.mesh) {
+                localPlayer.mesh.children.forEach(child => {
+                    if (child.material) {
+                        child.material.transparent = true;
+                        child.material.opacity = 0.3;
+                    }
+                });
+            }
+            
+            const playerRef = doc(db, getPlayerDocPath(localPlayerId));
+            updateDoc(playerRef, { isAlive: false, health: 0 })
+                .then(() => console.log("Local player marked as dead in Firestore."))
+                .catch(err => console.error("Error marking player as dead:", err));
+
+            setTimeout(() => {
+                const respawnButton = document.createElement('button');
+                respawnButton.textContent = '重新加入';
+                respawnButton.className = 'btn-primary ui-element';
+                respawnButton.style.position = 'absolute';
+                respawnButton.style.top = '60%';
+                respawnButton.style.left = '50%';
+                respawnButton.style.transform = 'translateX(-50%)';
+                respawnButton.onclick = async () => {
+                    localPlayer.health = INITIAL_HEALTH;
+                    localPlayer.isAlive = true;
+                    localPlayer.kills = 0; 
+                    const spawnRange = 40;
+                    localPlayer.mesh.position.set(
+                        (Math.random() - 0.5) * spawnRange,
+                        0,
+                        (Math.random() - 0.5) * spawnRange
+                    );
+                     localPlayer.mesh.children.forEach(child => {
+                        if (child.material) {
+                            child.material.transparent = false;
+                            child.material.opacity = 1;
+                        }
+                    });
+                    updateHealthBar();
+                    await joinGameInFirestore(); 
+                    showMessage("已重新加入游戏！");
+                    respawnButton.remove();
+                };
+                document.getElementById('ui-container').appendChild(respawnButton);
+            }, 3000);
+        }
+
+        function updateHealthBar() {
+            if (!localPlayer) return;
+            const healthPercentage = Math.max(0, (localPlayer.health / INITIAL_HEALTH) * 100);
+            healthBar.style.width = `${healthPercentage}%`;
+            if (healthPercentage < 30) healthBar.style.backgroundColor = 'red';
+            else if (healthPercentage < 60) healthBar.style.backgroundColor = 'orange';
+            else healthBar.style.backgroundColor = 'green';
+        }
+
+        let lastUpdateTime = 0;
+        const UPDATE_INTERVAL = 100; 
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta(); 
+
+            if (localPlayer && localPlayer.isAlive) {
+                handleMovement(delta);
+                handleMouseLook(delta); 
+                const now = Date.now();
+                if (now - lastUpdateTime > UPDATE_INTERVAL) {
+                    updatePlayerStateInFirestore();
+                    lastUpdateTime = now;
+                }
+            }
+            updateBullets(delta);
+            if (localPlayer && localPlayer.mesh) {
+                const offset = new THREE.Vector3(0, 6, 10); 
+                const desiredCamPos = localPlayer.mesh.position.clone().add(offset.applyQuaternion(localPlayer.mesh.quaternion));
+                camera.position.lerp(desiredCamPos, 0.1); 
+                const lookAtPos = localPlayer.mesh.position.clone().add(new THREE.Vector3(0, 1.5, 0)); 
+                camera.lookAt(lookAtPos);
+            }
+            renderer.render(scene, camera);
+        }
+
+        const clock = new THREE.Clock();
+        let mouse = new THREE.Vector2(); 
+        let isPointerLocked = false;
+
+        function handleMovement(delta) {
+            if (!localPlayer || !localPlayer.mesh || !localPlayer.isAlive) return;
+            const moveSpeed = PLAYER_SPEED * delta;
+            const moveDirection = new THREE.Vector3();
+            if (keyStates['w'] || keyStates['W'] || keyStates['ArrowUp']) moveDirection.z = -1;
+            if (keyStates['s'] || keyStates['S'] || keyStates['ArrowDown']) moveDirection.z = 1;
+            if (keyStates['a'] || keyStates['A'] || keyStates['ArrowLeft']) moveDirection.x = -1;
+            if (keyStates['d'] || keyStates['D'] || keyStates['ArrowRight']) moveDirection.x = 1;
+
+            if (moveDirection.lengthSq() > 0) { 
+                moveDirection.normalize(); 
+                moveDirection.applyQuaternion(localPlayer.mesh.quaternion); 
+                const oldPosition = localPlayer.mesh.position.clone();
+                localPlayer.mesh.position.add(moveDirection.multiplyScalar(moveSpeed));
+                const playerBox = new THREE.Box3().setFromObject(localPlayer.mesh);
+                for (const obstacle of obstacles) {
+                    const obstacleBox = new THREE.Box3().setFromObject(obstacle);
+                    if (playerBox.intersectsBox(obstacleBox)) {
+                        localPlayer.mesh.position.copy(oldPosition); 
+                        break; 
+                    }
+                }
+                const boundary = 48; 
+                localPlayer.mesh.position.x = Math.max(-boundary, Math.min(boundary, localPlayer.mesh.position.x));
+                localPlayer.mesh.position.z = Math.max(-boundary, Math.min(boundary, localPlayer.mesh.position.z));
+            }
+        }
+        
+        function handleMouseLook(delta) {
+            if (!isPointerLocked || !localPlayer || !localPlayer.mesh || !localPlayer.isAlive) return;
+            localPlayer.mesh.rotation.y -= mouse.x * 0.002; 
+            mouse.x = 0;
+            mouse.y = 0;
+        }
+
+        function updatePlayerStateInFirestore() {
+            if (!localPlayer || !localPlayer.mesh || !localPlayerId || !localPlayer.isAlive) return;
+            const playerRef = doc(db, getPlayerDocPath(localPlayerId));
+            const playerData = {
+                x: localPlayer.mesh.position.x,
+                y: localPlayer.mesh.position.y,
+                z: localPlayer.mesh.position.z,
+                rotationY: localPlayer.mesh.rotation.y,
+                health: localPlayer.health, 
+                isAlive: localPlayer.isAlive,
+                kills: localPlayer.kills,
+                lastDamagedBy: localPlayer.lastDamagedBy, // 同步此字段
+                lastSeen: serverTimestamp()
+            };
+            updateDoc(playerRef, playerData).catch(err => console.error("Error updating player state:", err));
+        }
+
+        function shoot() {
+            if (!localPlayer || !localPlayer.mesh || !localPlayer.isAlive) return;
+            const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+            const bulletGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+            const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+            const gunPosition = new THREE.Vector3(0, PLAYER_SIZE.height * 0.75, PLAYER_SIZE.radius + 0.3); 
+            gunPosition.applyQuaternion(localPlayer.mesh.quaternion); 
+            bullet.position.copy(localPlayer.mesh.position).add(gunPosition); 
+            const direction = new THREE.Vector3(0,0,-1); 
+            direction.applyQuaternion(localPlayer.mesh.quaternion); 
+            direction.normalize();
+            bullet.velocity = direction.multiplyScalar(BULLET_SPEED);
+            bullet.ownerId = localPlayerId; 
+            bullet.creationTime = clock.getElapsedTime();
+            scene.add(bullet);
+            bullets.push(bullet);
+        }
+
+        function updateBullets(delta) {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                bullet.position.add(bullet.velocity.clone().multiplyScalar(delta));
+                if (clock.getElapsedTime() - bullet.creationTime > 5) {
+                    scene.remove(bullet);
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                const bulletBox = new THREE.Box3().setFromObject(bullet);
+                for (const obstacle of obstacles) {
+                    const obstacleBox = new THREE.Box3().setFromObject(obstacle);
+                    if (bulletBox.intersectsBox(obstacleBox)) {
+                        scene.remove(bullet);
+                        bullets.splice(i, 1);
+                        break; 
+                    }
+                }
+                if (!bullet.parent) continue; 
+                for (const pId in playerMeshes) {
+                    if (pId === bullet.ownerId) continue; 
+                    if (!players[pId] || !players[pId].isAlive) continue; 
+                    const targetPlayerMesh = playerMeshes[pId];
+                    const distance = bullet.position.distanceTo(targetPlayerMesh.position);
+                    if (distance < PLAYER_SIZE.radius + PLAYER_SIZE.height / 2 * 0.7) { 
+                        scene.remove(bullet);
+                        bullets.splice(i, 1);
+                        if (bullet.ownerId === localPlayerId) {
+                             handleHit(pId, BULLET_DAMAGE, bullet.ownerId);
+                        }
+                        break; 
+                    }
+                }
+            }
+        }
+        
+        async function handleHit(targetPlayerId, damage, attackerId) {
+            if (!players[targetPlayerId] || !players[targetPlayerId].isAlive) return;
+
+            const targetPlayerRef = doc(db, getPlayerDocPath(targetPlayerId));
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const targetPlayerDoc = await transaction.get(targetPlayerRef);
+                    if (!targetPlayerDoc.exists() || !targetPlayerDoc.data().isAlive) {
+                        return; 
+                    }
+
+                    const currentHealth = targetPlayerDoc.data().health;
+                    const newHealth = Math.max(0, currentHealth - damage);
+                    
+                    // 更新受害者数据，包括生命值和最后攻击者
+                    transaction.update(targetPlayerRef, { 
+                        health: newHealth,
+                        lastDamagedBy: attackerId // 记录攻击者ID
+                    });
+
+                    if (newHealth <= 0) { 
+                        // 只有攻击者是本地玩家时，才在攻击者客户端生成击杀庆祝语
+                        if (attackerId === localPlayerId) {
+                            const targetName = players[targetPlayerId]?.name || `玩家${targetPlayerId.substring(0,4)}`;
+                            generateAndDisplayKillTaunt(targetName);
+                            
+                            // 更新本地玩家（攻击者）的击杀数
+                            localPlayer.kills = (localPlayer.kills || 0) + 1;
+                            const localPlayerRef = doc(db, getPlayerDocPath(localPlayerId));
+                            transaction.update(localPlayerRef, { kills: localPlayer.kills });
+                        }
+                    }
+                });
+                console.log(`Player ${attackerId} dealt ${damage} damage to ${targetPlayerId}.`);
+
+            } catch (error) {
+                console.error("Error handling hit and updating health:", error);
+            }
+        }
+
+        // --- Gemini API 功能 START ---
+        async function callGeminiAPI(promptText) {
+            showMessage("✨ AI播报员正在思考... ✨", 2000); // 显示思考中消息
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: promptText }] }]
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("Gemini API Error:", errorData);
+                    throw new Error(`Gemini API request failed with status ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    console.error("Gemini API: Unexpected response structure or no content", result);
+                    return "AI播报员今天有点累，稍后再说吧！";
+                }
+            } catch (error) {
+                console.error('Error calling Gemini API:', error);
+                return "AI播报员连接出现了一点小问题...";
+            }
+        }
+
+        async function generateAndDisplayKillTaunt(targetName) {
+            if (!localPlayer || !localPlayer.name) return;
+            const prompt = `你是一名幽默风趣的3D射击游戏播报员。玩家 "${localPlayer.name}" 刚刚漂亮地击败了玩家 "${targetName}"。请为 "${localPlayer.name}" 生成一条简短、俏皮、略带自夸的庆祝语。风格要轻松活泼。限制在25个汉字以内。`;
+            const taunt = await callGeminiAPI(prompt);
+            showMessage(`✨ AI播报员 ✨: ${taunt}`, 5000);
+        }
+
+        async function generateAndDisplayDeathMessage(killerName) {
+            if (!localPlayer || !localPlayer.name) return;
+            const prompt = `你是一名幽默风趣的3D射击游戏播报员。玩家 "${localPlayer.name}" 刚刚被玩家 "${killerName}" 淘汰了。请为 "${localPlayer.name}" 生成一条简短、略带幽默的阵亡感言，可以带一点对 "${killerName}" 高超技巧的惊叹或无奈。风格要轻松活泼。限制在25个汉字以内。`;
+            const deathMessage = await callGeminiAPI(prompt);
+            showMessage(`✨ AI播报员 ✨: ${deathMessage}`, 5000);
+        }
+        // --- Gemini API 功能 END ---
+
+
+        function setupEventListeners() {
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('keydown', (event) => { keyStates[event.key] = true; });
+            document.addEventListener('keyup', (event) => { keyStates[event.key] = false; });
+            
+            gameCanvas.addEventListener('click', () => {
+                if (!isPointerLocked) {
+                    gameCanvas.requestPointerLock();
+                } else {
+                    if (localPlayer && localPlayer.isAlive) shoot();
+                }
+            });
+
+            document.addEventListener('pointerlockchange', () => {
+                isPointerLocked = document.pointerLockElement === gameCanvas;
+                document.getElementById('crosshair').style.display = isPointerLocked ? 'block' : 'none';
+            }, false);
+
+            document.addEventListener('mousemove', (event) => {
+                if (isPointerLocked) {
+                    mouse.x = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+                    mouse.y = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+                }
+            }, false);
+            
+            window.addEventListener('beforeunload', async () => {
+                if (localPlayerId && db) {
+                    const playerRef = doc(db, getPlayerDocPath(localPlayerId));
+                    try {
+                        await deleteDoc(playerRef);
+                    } catch (error) {
+                        console.error("Error removing player data on exit:", error);
+                    }
+                }
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        let messageTimeout;
+        function showMessage(msg, duration = 3000) {
+            messageContainer.textContent = msg;
+            messageContainer.style.display = 'block';
+            clearTimeout(messageTimeout);
+            if (duration > 0) {
+                messageTimeout = setTimeout(() => {
+                    messageContainer.style.display = 'none';
+                }, duration);
+            }
+        }
+
+        initializeFirebase();
+
     </script>
-  </body>
+</body>
 </html>
