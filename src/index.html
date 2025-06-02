@@ -161,13 +161,15 @@
         // --- 配置 START ---
         // 重要提示：请将下面的占位符替换为你的真实 Firebase 项目配置！
         // 你可以从 Firebase 控制台 > 项目设置 > 常规 > 你的应用 > Firebase SDK snippet > 配置 中获取。
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyCMT4t0NMSjXgI9clqALB6uguqY76ul8Iw", // <--- 请务必替换这里！！！
-            authDomain: "sce-intl.firebaseapp.com", // <--- 请务必替换这里！！！
-            projectId: "sce-intl", // <--- 请务必替换这里！！！
-            storageBucket: "sce-intl.firebasestorage.app", // <--- 请务必替换这里！！！
-            messagingSenderId: "247196390586", // <--- 请务必替换这里！！！
-            appId: "1:247196390586:web:a9a5b3c64aeaf545ef5e83" // <--- 请务必替换这里！！！
+        const firebaseConfig = {
+            apiKey: "AIzaSyCMT4t0NMSjXgI9clqALB6uguqY76ul8Iw",
+            authDomain: "taptap-ugc.firebaseapp.com",
+            databaseURL: "https://taptap-ugc-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "taptap-ugc",
+            storageBucket: "taptap-ugc.appspot.com",
+            messagingSenderId: "519191676565",
+            appId: "1:519191676565:web:YOUR_APP_ID",
+            measurementId: "G-YOUR_MEASUREMENT_ID"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-io-shooter-app'; // 这个通常由Canvas环境提供
         // --- 配置 END ---
