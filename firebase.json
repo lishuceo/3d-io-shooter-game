@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "3d-io-shooter",
     "public": "src",
     "ignore": [
       "firebase.json",
@@ -12,5 +13,11 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-southeast1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   }
 }
